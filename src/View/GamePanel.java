@@ -10,6 +10,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collections;
 
 public class GamePanel extends JPanel {
     private Nave nave;
@@ -20,6 +21,7 @@ public class GamePanel extends JPanel {
         this.nave = naveInicial;
         setPreferredSize(new Dimension(800, 600));
         setBackground(Color.BLACK);
+        setFocusable(true);
     }
 
     public Nave getNave() {
@@ -41,6 +43,7 @@ public class GamePanel extends JPanel {
     public void actualizarJuego() {
         if (nave != null && nave.estaActivo()) {
             nave.mover();
+            limitarNaveDentroPantalla();
         }
 
         for (Asteroide a : asteroides) {
@@ -62,18 +65,13 @@ public class GamePanel extends JPanel {
             for (Asteroide a : new ArrayList<>(asteroides)) {
                 if (!a.estaActivo()) continue;
                 if (p.colisionaCon(a)) {
-                    // desactiva proyectil
                     p.setActivo(false);
-                    // asteroide recibe impacto y puede generar fragmentos
                     Asteroide[] frag = a.recibirImpacto();
-                    for (Asteroide f : frag) {
-                        nuevos.add(f);
-                    }
-                    break; // proyectil ya impactó
+                    Collections.addAll(nuevos, frag);
+                    break;
                 }
             }
         }
-        // Añadir fragmentos generados
         asteroides.addAll(nuevos);
 
         // Colisiones: nave vs asteroide
@@ -81,14 +79,13 @@ public class GamePanel extends JPanel {
             for (Asteroide a : new ArrayList<>(asteroides)) {
                 if (!a.estaActivo()) continue;
                 if (nave.colisionaCon(a)) {
-                    // la nave pierde vida y el asteroide se rompe
                     nave.perderVida();
                     Asteroide[] frag = a.recibirImpacto();
-                    for (Asteroide f : frag) asteroides.add(f);
+                    Collections.addAll(asteroides, frag);
                     if (nave.getVidas() <= 0) {
                         nave.setActivo(false);
                     }
-                    break; // manejar una colisión por tick
+                    break;
                 }
             }
         }
@@ -96,6 +93,28 @@ public class GamePanel extends JPanel {
         // Limpiar entidades inactivas
         proyectiles.removeIf(p -> !p.estaActivo());
         asteroides.removeIf(a -> !a.estaActivo());
+    }
+
+    private void limitarNaveDentroPantalla() {
+        if (nave == null) return;
+        int anchoPanel = getWidth();
+        int altoPanel = getHeight();
+
+        double x = nave.getX();
+        double y = nave.getY();
+        int anchoNave = nave.getAncho();
+        int altoNave = nave.getAlto();
+
+        double minX = anchoNave / 2.0;
+        double maxX = anchoPanel - anchoNave / 2.0;
+        double minY = altoNave / 2.0;
+        double maxY = altoPanel - altoNave / 2.0;
+
+        double nx = Math.max(minX, Math.min(maxX, x));
+        double ny = Math.max(minY, Math.min(maxY, y));
+
+        nave.setX(nx);
+        nave.setY(ny);
     }
 
     @Override

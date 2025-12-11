@@ -1,7 +1,7 @@
 import Model.Nave;
 import Model.Asteroide;
-import Model.Proyectil;
 import View.GamePanel;
+import Controller.InputController;
 
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
@@ -29,13 +29,20 @@ public class Main {
             frame.add(gamePanel);
             frame.pack();
             frame.setLocationRelativeTo(null);
+
+            // Crear y registrar el controlador de entrada
+            InputController inputController = new InputController(nave, gamePanel);
+            gamePanel.addKeyListener(inputController);
+
             frame.setVisible(true);
+            gamePanel.requestFocusInWindow();
 
             // Bucle de juego sencillo con Timer (aprox. 60 FPS)
             int delay = 16; // ms
             Timer timer = new Timer(delay, new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
+                    inputController.aplicarInput();
                     gamePanel.actualizarJuego();
                     gamePanel.repaint();
                 }

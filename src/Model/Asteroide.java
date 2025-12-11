@@ -3,10 +3,9 @@ package Model;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import javax.imageio.ImageIO;
-import java.io.InputStream;
-import java.io.IOException;
 import java.util.Random;
+
+import Controller.ResourceLoader;
 
 /**
  * Representa un asteroide en Galactic Storm.
@@ -16,25 +15,7 @@ public class Asteroide extends EntidadJuego {
     private int tamano; // por ejemplo, radio o escala
     private int nivel;  // 3 = grande, 2 = mediano, 1 = pequeño
     private static final Random rnd = new Random();
-    private static BufferedImage imagen;
-
-    static {
-        try (InputStream is1 = Asteroide.class.getResourceAsStream("/Recursos/asteroide.png")) {
-            if (is1 != null) {
-                imagen = ImageIO.read(is1);
-            } else {
-                try (InputStream is2 = Asteroide.class.getResourceAsStream("/asteroide.png")) {
-                    if (is2 != null) {
-                        imagen = ImageIO.read(is2);
-                    } else {
-                        imagen = null;
-                    }
-                }
-            }
-        } catch (IOException e) {
-            imagen = null;
-        }
-    }
+    private static final BufferedImage imagen = ResourceLoader.cargarImagen("asteroide.png");
 
     public Asteroide(double x, double y, double vx, double vy,
                      int ancho, int alto, boolean activo,
@@ -47,14 +28,9 @@ public class Asteroide extends EntidadJuego {
     @Override
     public void mover() {
         super.mover();
-        // Aquí podrías añadir lógica extra si quieres que el movimiento
-        // del asteroide sea algo más complejo.
+        // aquí podrías añadir lógica extra de movimiento
     }
 
-    /**
-     * Divide el asteroide en fragmentos más pequeños.
-     * Si el asteroide es de nivel 1 (pequeño) no devuelve fragmentos.
-     */
     public Asteroide[] dividir() {
         if (nivel <= 1) return new Asteroide[0];
         int nuevoNivel = nivel - 1;
@@ -70,9 +46,6 @@ public class Asteroide extends EntidadJuego {
         return frag;
     }
 
-    /**
-     * Maneja el impacto: desactiva este asteroide y devuelve los fragmentos generados.
-     */
     public Asteroide[] recibirImpacto() {
         Asteroide[] res = dividir();
         this.activo = false;
@@ -81,7 +54,6 @@ public class Asteroide extends EntidadJuego {
 
     @Override
     public void dibujar(Graphics g) {
-        // Dibujo usando imagen si está disponible, centrada en (x,y) y escalada a ancho/alto
         if (imagen != null) {
             Graphics2D g2 = (Graphics2D) g;
             int drawX = (int) (x - ancho / 2.0);

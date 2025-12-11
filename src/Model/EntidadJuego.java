@@ -45,11 +45,22 @@ public abstract class EntidadJuego {
     }
 
     /**
-     * Comprueba colisión rectangular simple con otra entidad (bounding box centrada).
+     * Radio de colisión por defecto (basado en el tamaño mínimo).
+     */
+    public double getRadioColision() {
+        return Math.min(ancho, alto) / 2.0;
+    }
+
+    /**
+     * Colisión circular simple entre dos entidades.
      */
     public boolean colisionaCon(EntidadJuego otra) {
         if (otra == null) return false;
-        return this.getBounds().intersects(otra.getBounds());
+        double dx = this.x - otra.x;
+        double dy = this.y - otra.y;
+        double dist2 = dx * dx + dy * dy;
+        double r = this.getRadioColision() + otra.getRadioColision();
+        return dist2 <= r * r;
     }
 
     public boolean estaActivo() {
@@ -67,4 +78,8 @@ public abstract class EntidadJuego {
     public double getVy() { return vy; }
     public int getAncho() { return ancho; }
     public int getAlto() { return alto; }
+
+    // Setters de posición (útiles para limitar dentro de la pantalla)
+    public void setX(double x) { this.x = x; }
+    public void setY(double y) { this.y = y; }
 }
