@@ -1,8 +1,6 @@
 package Controller;
 
 import Model.Nave;
-import Model.Proyectil;
-import View.GamePanel;
 
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -19,8 +17,7 @@ import java.awt.event.KeyEvent;
  */
 public class InputController extends KeyAdapter {
 
-    private final Nave nave;
-    private final GamePanel gamePanel;
+    private final GameController controller;
 
     private boolean izquierda;
     private boolean derecha;
@@ -32,9 +29,8 @@ public class InputController extends KeyAdapter {
     private int cooldownDisparo = 0;
     private static final int COOLDOWN_MAX = 10; // ~10 frames entre disparos
 
-    public InputController(Nave nave, GamePanel gamePanel) {
-        this.nave = nave;
-        this.gamePanel = gamePanel;
+    public InputController(GameController controller) {
+        this.controller = controller;
     }
 
     @Override
@@ -65,6 +61,7 @@ public class InputController extends KeyAdapter {
      * Llamar en cada tick del juego para aplicar el estado actual del teclado.
      */
     public void aplicarInput() {
+        Nave nave = controller != null ? controller.getNave() : null;
         if (nave == null || !nave.estaActivo()) return;
 
         double deltaRotacion = 5.0;        // grados por tick
@@ -89,10 +86,7 @@ public class InputController extends KeyAdapter {
         }
 
         if (disparar && cooldownDisparo == 0) {
-            Proyectil p = nave.disparar();
-            if (p != null) {
-                gamePanel.getProyectiles().add(p);
-            }
+            controller.disparar();
             cooldownDisparo = COOLDOWN_MAX;
         }
     }

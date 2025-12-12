@@ -1,143 +1,60 @@
 package View;
 
-import Model.Nave;
-import Model.Asteroide;
-import Model.Proyectil;
+import Controller.GameController;
 
 import javax.swing.JPanel;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Collections;
+import java.awt.Graphics2D;
+import java.awt.Font;
+import java.awt.RenderingHints;
 
 public class GamePanel extends JPanel {
-    private Nave nave;
-    private final List<Asteroide> asteroides = new ArrayList<>();
-    private final List<Proyectil> proyectiles = new ArrayList<>();
+    private final GameController controller;
 
-    public GamePanel(Nave naveInicial) {
-        this.nave = naveInicial;
+    public GamePanel(GameController controller) {
+        this.controller = controller;
         setPreferredSize(new Dimension(800, 600));
         setBackground(Color.BLACK);
         setFocusable(true);
     }
 
-    public Nave getNave() {
-        return nave;
-    }
-
-    public void setNave(Nave nave) {
-        this.nave = nave;
-    }
-
-    public List<Asteroide> getAsteroides() {
-        return asteroides;
-    }
-
-    public List<Proyectil> getProyectiles() {
-        return proyectiles;
-    }
-
-    public void actualizarJuego() {
-        if (nave != null && nave.estaActivo()) {
-            nave.mover();
-            limitarNaveDentroPantalla();
-        }
-
-        for (Asteroide a : asteroides) {
-            if (a.estaActivo()) {
-                a.mover();
-            }
-        }
-
-        for (Proyectil p : proyectiles) {
-            if (p.estaActivo()) {
-                p.mover();
-            }
-        }
-
-        // Colisiones: proyectil vs asteroide
-        List<Asteroide> nuevos = new ArrayList<>();
-        for (Proyectil p : new ArrayList<>(proyectiles)) {
-            if (!p.estaActivo()) continue;
-            for (Asteroide a : new ArrayList<>(asteroides)) {
-                if (!a.estaActivo()) continue;
-                if (p.colisionaCon(a)) {
-                    p.setActivo(false);
-                    Asteroide[] frag = a.recibirImpacto();
-                    Collections.addAll(nuevos, frag);
-                    break;
-                }
-            }
-        }
-        asteroides.addAll(nuevos);
-
-        // Colisiones: nave vs asteroide
-        if (nave != null && nave.estaActivo()) {
-            for (Asteroide a : new ArrayList<>(asteroides)) {
-                if (!a.estaActivo()) continue;
-                if (nave.colisionaCon(a)) {
-                    nave.perderVida();
-                    Asteroide[] frag = a.recibirImpacto();
-                    Collections.addAll(asteroides, frag);
-                    if (nave.getVidas() <= 0) {
-                        nave.setActivo(false);
-                    }
-                    break;
-                }
-            }
-        }
-
-        // Limpiar entidades inactivas
-        proyectiles.removeIf(p -> !p.estaActivo());
-        asteroides.removeIf(a -> !a.estaActivo());
-    }
-
-    private void limitarNaveDentroPantalla() {
-        if (nave == null) return;
-        int anchoPanel = getWidth();
-        int altoPanel = getHeight();
-
-        double x = nave.getX();
-        double y = nave.getY();
-        int anchoNave = nave.getAncho();
-        int altoNave = nave.getAlto();
-
-        double minX = anchoNave / 2.0;
-        double maxX = anchoPanel - anchoNave / 2.0;
-        double minY = altoNave / 2.0;
-        double maxY = altoPanel - altoNave / 2.0;
-
-        double nx = Math.max(minX, Math.min(maxX, x));
-        double ny = Math.max(minY, Math.min(maxY, y));
-
-        nave.setX(nx);
-        nave.setY(ny);
+    public GameController getController() {
+        return controller;
     }
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        if (nave != null && nave.estaActivo()) {
-            g.setColor(Color.CYAN);
-            nave.dibujar(g);
-        }
-
-        g.setColor(Color.GRAY);
-        for (Asteroide a : asteroides) {
-            if (a.estaActivo()) {
-                a.dibujar(g);
+        controller.getAsteroides().forEach(asteroide -> {
+            if (asteroide.estaActivo()) {
+                g2.setColor(Color.GRAY);
+                asteroide.dibujar(g2);
             }
+        });
+
+        controller.getProyectiles().forEach(proyectil -> {
+            if (proyectil.estaActivo()) {
+                g2.setColor(Color.YELLOW);
+                proyectil.dibujar(g2);
+            }
+        });
+
+        if (controller.getNave() != null && controller.getNave().estaActivo()) {
+            g2.setColor(Color.CYAN);
+            controller.getNave().dibujar(g2);
         }
 
-        g.setColor(Color.YELLOW);
-        for (Proyectil p : proyectiles) {
-            if (p.estaActivo()) {
-                p.dibujar(g);
-            }
-        }
+        g2.setFont(new Font("Consolas", Font.BOLD, 16));
+        String hud = "Puntos: " + controller.getScore() + "  Vidas: " + controller.getVidas();
+        int textWidth = g2.getFontMetrics().stringWidth(hud);
+        int x = getWidth() - textWidth - 10;
+        int y = 10 + g2.getFontMetrics().getAscent();
+        g2.setColor(Color.WHITE);
+        g2.drawString(hud, x, y);
     }
 }
