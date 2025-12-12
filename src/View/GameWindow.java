@@ -28,7 +28,7 @@ public class GameWindow extends JFrame {
                 mostrarJuego();
                 controller.generarAsteroidesIniciales(GameController.ASTEROIDES_INICIALES);
                 controller.iniciar();
-                gamePanel.requestFocusInWindow();
+                java.awt.EventQueue.invokeLater(gamePanel::requestFocusInWindow);
             },
             () -> JOptionPane.showMessageDialog(this,
                 "Controles:\nW - Acelerar\nS - Frenar/Reversa\nA/D - Rotar\nEspacio - Disparar",
@@ -45,6 +45,7 @@ public class GameWindow extends JFrame {
 
     private void mostrarJuego() {
         cardLayout.show(getContentPane(), "game");
+        java.awt.EventQueue.invokeLater(gamePanel::requestFocusInWindow);
     }
 
     public void mostrarInicio() {
@@ -52,4 +53,3 @@ public class GameWindow extends JFrame {
         startPanel.habilitarBotonInicio();
     }
 }
-

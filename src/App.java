@@ -15,9 +15,9 @@ public class App {
             Nave nave = new Nave(MUNDO_ANCHO / 2.0, MUNDO_ALTO / 2.0, 0, 0, 40, 20, true);
             GameController controller = new GameController(nave, MUNDO_ANCHO, MUNDO_ALTO);
             InputController inputController = new InputController(controller);
+            controller.setInputController(inputController);
             GameWindow window = new GameWindow(controller, inputController, MUNDO_ANCHO, MUNDO_ALTO);
 
-            controller.setOnGameOver(window::mostrarInicio);
             window.requestFocusInWindow();
         });
     }

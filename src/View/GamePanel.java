@@ -41,7 +41,8 @@ public class GamePanel extends JPanel {
         restartButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         restartButton.setToolTipText("Reiniciar la partida");
         restartButton.addActionListener(e -> {
-            controller.reiniciar(25);
+            controller.reiniciar(GameController.ASTEROIDES_INICIALES);
+            controller.iniciar();
             restartButton.setVisible(false);
             requestFocusInWindow();
         });
