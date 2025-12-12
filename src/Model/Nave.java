@@ -94,4 +94,15 @@ public class Nave extends EntidadJuego {
     public int getVidas() { return vidas; }
     public double getEnergia() { return energia; }
     public void perderVida() { vidas = Math.max(0, vidas - 1); }
+
+    public void reiniciar(double nuevoX, double nuevoY) {
+        this.x = nuevoX;
+        this.y = nuevoY;
+        this.vx = 0;
+        this.vy = 0;
+        this.rotacion = 0;
+        this.vidas = 3;
+        this.energia = 100.0;
+        this.activo = true;
+    }
 }

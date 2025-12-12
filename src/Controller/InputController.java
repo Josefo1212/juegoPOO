@@ -67,6 +67,7 @@ public class InputController extends KeyAdapter {
         double deltaRotacion = 5.0;        // grados por tick
         double fuerzaAceleracion = 0.2;   // aceleración por tick
         double fuerzaFreno = 0.90;        // factor de frenado multiplicativo
+        double fuerzaReversa = 0.12;      // potencia del retroceso al frenar
 
         if (izquierda) {
             nave.rotarIzquierda(deltaRotacion);
@@ -79,6 +80,7 @@ public class InputController extends KeyAdapter {
         }
         if (frenar) {
             nave.frenar(fuerzaFreno);
+            nave.acelerar(-fuerzaReversa);
         }
 
         if (cooldownDisparo > 0) {

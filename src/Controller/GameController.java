@@ -22,6 +22,7 @@ public class GameController {
     private static final double MIN_ASTEROID_DISTANCE = 120.0;
     private static final double MIN_ASTEROID_SPEED = 0.1;
     private static final double MAX_ASTEROID_SPEED = 1.5;
+    private static final int VIDAS_INICIALES = 3;
 
     private final Nave nave;
     private final List<Asteroide> asteroides = new ArrayList<>();
@@ -35,6 +36,7 @@ public class GameController {
     private InputController inputController;
     private Timer timer;
     private int score;
+    private boolean gameOver;
 
     public GameController(Nave nave, int worldWidth, int worldHeight) {
         this.nave = nave;
@@ -77,6 +79,9 @@ public class GameController {
         if (nave != null && nave.estaActivo()) {
             nave.mover();
             limitarNaveEnPantalla();
+        }
+        if (!nave.estaActivo()) {
+            gameOver = true;
         }
 
         for (Asteroide asteroide : asteroides) {
@@ -147,6 +152,21 @@ public class GameController {
         return Math.hypot(dx, dy);
     }
 
+    public boolean estaGameOver() {
+        return gameOver;
+    }
+
+    public void reiniciar(int cantidadAsteroides) {
+        asteroides.clear();
+        proyectiles.clear();
+        score = 0;
+        gameOver = false;
+        if (nave != null) {
+            nave.reiniciar(worldWidth / 2.0, worldHeight / 2.0);
+        }
+        generarAsteroidesIniciales(cantidadAsteroides);
+    }
+
     public void registrarProyectil(Proyectil proyectil) {
         if (proyectil != null) {
             proyectiles.add(proyectil);
@@ -181,4 +201,3 @@ public class GameController {
         return nave != null ? nave.getVidas() : 0;
     }
 }
-
