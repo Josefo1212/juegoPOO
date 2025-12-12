@@ -18,6 +18,7 @@ import java.util.Random;
  */
 public class GameController {
 
+    public static final int ASTEROIDES_INICIALES = 25;
     private static final int TIMER_DELAY_MS = 16;
     private static final double MIN_ASTEROID_DISTANCE = 120.0;
     private static final double MIN_ASTEROID_SPEED = 0.1;
@@ -37,6 +38,7 @@ public class GameController {
     private Timer timer;
     private int score;
     private boolean gameOver;
+    private Runnable onGameOver;
 
     public GameController(Nave nave, int worldWidth, int worldHeight) {
         this.nave = nave;
@@ -69,6 +71,10 @@ public class GameController {
         timer.start();
     }
 
+    public void setOnGameOver(Runnable onGameOver) {
+        this.onGameOver = onGameOver;
+    }
+
     public void detener() {
         if (timer != null) {
             timer.stop();
@@ -81,7 +87,13 @@ public class GameController {
             limitarNaveEnPantalla();
         }
         if (!nave.estaActivo()) {
-            gameOver = true;
+            if (!gameOver) {
+                gameOver = true;
+                if (onGameOver != null) {
+                    onGameOver.run();
+                }
+            }
+            return;
         }
 
         for (Asteroide asteroide : asteroides) {

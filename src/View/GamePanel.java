@@ -97,6 +97,9 @@ public class GamePanel extends JPanel {
         } else {
             restartButton.setVisible(false);
         }
+        if (controller.estaGameOver()) {
+            controller.detener();
+        }
     }
 
     private void posicionarBoton() {
