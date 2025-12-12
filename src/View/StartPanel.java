@@ -19,8 +19,9 @@ public class StartPanel extends JPanel {
 
     private final JButton startButton = new JButton("Iniciar Juego");
     private final JButton controlsButton = new JButton("Mostrar Controles");
+    private final JButton leaderboardButton = new JButton("Tabla de Líderes");
 
-    public StartPanel(Runnable onStartGame, Runnable onShowControls) {
+    public StartPanel(Runnable onStartGame, Runnable onShowControls, Runnable onShowLeaderboard) {
         setLayout(new GridBagLayout());
         setBackground(Color.BLACK);
         setBorder(new EmptyBorder(40, 40, 40, 40));
@@ -31,6 +32,7 @@ public class StartPanel extends JPanel {
 
         configurarBoton(startButton, onStartGame);
         configurarBoton(controlsButton, onShowControls);
+        configurarBoton(leaderboardButton, onShowLeaderboard);
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
@@ -46,6 +48,9 @@ public class StartPanel extends JPanel {
 
         gbc.gridy = 2;
         add(controlsButton, gbc);
+
+        gbc.gridy = 3;
+        add(leaderboardButton, gbc);
     }
 
     private void configurarBoton(JButton button, Runnable action) {
@@ -57,8 +62,13 @@ public class StartPanel extends JPanel {
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         button.addActionListener(e -> {
             if (action != null) {
-                button.setEnabled(false);
+                if (button == startButton) {
+                    button.setEnabled(false);
+                }
                 action.run();
+                if (button != startButton) {
+                    button.setEnabled(true);
+                }
             }
         });
     }
@@ -67,4 +77,3 @@ public class StartPanel extends JPanel {
         startButton.setEnabled(true);
     }
 }
-

@@ -1,6 +1,9 @@
 package Model;
 
 import java.awt.Graphics;
+import Model.CollisionCircle;
+import Model.CollisionShape;
+import Model.Vector2;
 
 /**
  * Representa un proyectil disparado por la nave en Galactic Storm.
@@ -29,6 +32,11 @@ public class Proyectil extends EntidadJuego {
 
     public boolean estaActivo() {
         return activo && tiempoVida > 0;
+    }
+
+    @Override
+    public CollisionShape getCollisionShape() {
+        return new CollisionCircle(new Vector2(x, y), Math.max(ancho, alto) / 2.0);
     }
 
     @Override

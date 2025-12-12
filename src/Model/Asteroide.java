@@ -6,6 +6,9 @@ import java.awt.image.BufferedImage;
 import java.util.Random;
 
 import Controller.ResourceLoader;
+import Model.CollisionCircle;
+import Model.CollisionShape;
+import Model.Vector2;
 
 /**
  * Representa un asteroide en Galactic Storm.
@@ -68,4 +71,9 @@ public class Asteroide extends EntidadJuego {
 
     public int getTamano() { return tamano; }
     public int getNivel() { return nivel; }
+
+    @Override
+    public CollisionShape getCollisionShape() {
+        return new CollisionCircle(new Vector2(x, y), Math.max(ancho, alto) / 2.2);
+    }
 }

@@ -23,16 +23,19 @@ public class GameWindow extends JFrame {
         controller.setView(gamePanel);
         gamePanel.addKeyListener(inputController);
 
+        Runnable onStart = () -> {
+            mostrarJuego();
+            controller.generarAsteroidesIniciales(GameController.ASTEROIDES_INICIALES);
+            controller.iniciar();
+            java.awt.EventQueue.invokeLater(gamePanel::requestFocusInWindow);
+        };
+
         startPanel = new StartPanel(
-            () -> {
-                mostrarJuego();
-                controller.generarAsteroidesIniciales(GameController.ASTEROIDES_INICIALES);
-                controller.iniciar();
-                java.awt.EventQueue.invokeLater(gamePanel::requestFocusInWindow);
-            },
+            onStart,
             () -> JOptionPane.showMessageDialog(this,
                 "Controles:\nW - Acelerar\nS - Frenar/Reversa\nA/D - Rotar\nEspacio - Disparar",
-                "Controles", JOptionPane.INFORMATION_MESSAGE)
+                "Controles", JOptionPane.INFORMATION_MESSAGE),
+            () -> new LeaderboardDialog(this, controller.getLeaderboard()).setVisible(true)
         );
 
         add(startPanel, "start");

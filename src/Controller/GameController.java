@@ -5,12 +5,13 @@ import Model.Nave;
 import Model.Proyectil;
 import View.GamePanel;
 
-import javax.swing.Timer;
-import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Coordina la lógica principal del juego Galactic Storm.
@@ -18,12 +19,16 @@ import java.util.Random;
  */
 public class GameController {
 
-    public static final int ASTEROIDES_INICIALES = 25;
+    public static final int ASTEROIDES_INICIALES = 8;
     private static final int TIMER_DELAY_MS = 16;
     private static final double MIN_ASTEROID_DISTANCE = 120.0;
     private static final double MIN_ASTEROID_SPEED = 0.1;
     private static final double MAX_ASTEROID_SPEED = 1.5;
-    private static final int VIDAS_INICIALES = 3;
+    private static final int SPAWN_INTERVAL_BASE = 300;
+    private static final int SPAWN_INTERVAL_MIN = 120;
+    private static final int SPAWN_WAVE_BASE = 3;
+    private static final int SPAWN_WAVE_MAX = 15;
+    private static final int MAX_ASTEROIDES_ACTIVOS = 80;
 
     private final Nave nave;
     private final List<Asteroide> asteroides = new ArrayList<>();
@@ -35,15 +40,20 @@ public class GameController {
 
     private GamePanel view;
     private InputController inputController;
-    private Timer timer;
+    private ScheduledExecutorService executor;
     private int score;
     private boolean gameOver;
     private Runnable onGameOver;
+    private final LeaderboardManager leaderboardManager;
+    private int spawnTickCounter = 0;
+    private int spawnIntervalTicks = SPAWN_INTERVAL_BASE;
+    private int waveSize = SPAWN_WAVE_BASE;
 
-    public GameController(Nave nave, int worldWidth, int worldHeight) {
+    public GameController(Nave nave, int worldWidth, int worldHeight, LeaderboardManager leaderboardManager) {
         this.nave = nave;
         this.worldWidth = worldWidth;
         this.worldHeight = worldHeight;
+        this.leaderboardManager = leaderboardManager;
     }
 
     public void setView(GamePanel view) {
@@ -55,20 +65,25 @@ public class GameController {
     }
 
     public void iniciar() {
-        if (timer != null && timer.isRunning()) {
+        if (executor != null && !executor.isShutdown()) {
             return;
         }
-        ActionListener tick = e -> {
-            if (inputController != null) {
-                inputController.aplicarInput();
-            }
-            actualizarEstado();
-            if (view != null) {
-                view.repaint();
-            }
-        };
-        timer = new Timer(TIMER_DELAY_MS, tick);
-        timer.start();
+        executor = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "GameLoop");
+            t.setDaemon(true);
+            return t;
+        });
+        executor.scheduleAtFixedRate(this::tick, 0, TIMER_DELAY_MS, TimeUnit.MILLISECONDS);
+    }
+
+    private void tick() {
+        if (inputController != null) {
+            inputController.aplicarInput();
+        }
+        actualizarEstado();
+        if (view != null) {
+            javax.swing.SwingUtilities.invokeLater(view::repaint);
+        }
     }
 
     public void setOnGameOver(Runnable onGameOver) {
@@ -76,8 +91,9 @@ public class GameController {
     }
 
     public void detener() {
-        if (timer != null) {
-            timer.stop();
+        if (executor != null) {
+            executor.shutdownNow();
+            executor = null;
         }
     }
 
@@ -89,6 +105,7 @@ public class GameController {
         if (!nave.estaActivo()) {
             if (!gameOver) {
                 gameOver = true;
+                registrarPuntaje();
                 if (onGameOver != null) {
                     onGameOver.run();
                 }
@@ -113,6 +130,7 @@ public class GameController {
 
         proyectiles.removeIf(p -> !p.estaActivo());
         asteroides.removeIf(a -> !a.estaActivo());
+        manejarSpawns();
     }
 
     private void limitarNaveEnPantalla() {
@@ -129,6 +147,10 @@ public class GameController {
     }
 
     public void generarAsteroidesIniciales(int cantidad) {
+        generarAsteroides(cantidad);
+    }
+
+    private void generarAsteroides(int cantidad) {
         int generados = 0;
         while (generados < cantidad) {
             double x = random.nextDouble() * worldWidth;
@@ -164,6 +186,27 @@ public class GameController {
         return Math.hypot(dx, dy);
     }
 
+    private void manejarSpawns() {
+        if (gameOver) return;
+        spawnTickCounter++;
+        if (spawnTickCounter < spawnIntervalTicks) {
+            return;
+        }
+        spawnTickCounter = 0;
+        int activos = (int) asteroides.stream().filter(Asteroide::estaActivo).count();
+        int disponibles = Math.max(0, MAX_ASTEROIDES_ACTIVOS - activos);
+        int cantidad = Math.min(waveSize, disponibles);
+        if (cantidad > 0) {
+            generarAsteroides(cantidad);
+        }
+        if (waveSize < SPAWN_WAVE_MAX) {
+            waveSize++;
+        }
+        if (spawnIntervalTicks > SPAWN_INTERVAL_MIN) {
+            spawnIntervalTicks = Math.max(SPAWN_INTERVAL_MIN, spawnIntervalTicks - 10);
+        }
+    }
+
     public boolean estaGameOver() {
         return gameOver;
     }
@@ -173,10 +216,19 @@ public class GameController {
         proyectiles.clear();
         score = 0;
         gameOver = false;
+        spawnTickCounter = 0;
+        spawnIntervalTicks = SPAWN_INTERVAL_BASE;
+        waveSize = SPAWN_WAVE_BASE;
         if (nave != null) {
             nave.reiniciar(worldWidth / 2.0, worldHeight / 2.0);
         }
         generarAsteroidesIniciales(cantidadAsteroides);
+    }
+
+    private void registrarPuntaje() {
+        if (leaderboardManager != null) {
+            leaderboardManager.registrarPuntaje("Jugador", score);
+        }
     }
 
     public void registrarProyectil(Proyectil proyectil) {
@@ -207,6 +259,10 @@ public class GameController {
 
     public int getScore() {
         return score;
+    }
+
+    public List<LeaderboardManager.ScoreEntry> getLeaderboard() {
+        return leaderboardManager != null ? leaderboardManager.obtenerTop() : Collections.emptyList();
     }
 
     public int getVidas() {

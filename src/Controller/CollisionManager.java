@@ -3,6 +3,7 @@ package Controller;
 import Model.Asteroide;
 import Model.Nave;
 import Model.Proyectil;
+import Model.CollisionShape;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,9 +23,10 @@ public class CollisionManager {
         List<Asteroide> nuevos = new ArrayList<>();
         for (Proyectil proyectil : proyectiles) {
             if (!proyectil.estaActivo()) continue;
+            CollisionShape shapeProyectil = proyectil.getCollisionShape();
             for (Asteroide asteroide : asteroides) {
                 if (!asteroide.estaActivo()) continue;
-                if (proyectil.colisionaCon(asteroide)) {
+                if (shapeProyectil != null && shapeProyectil.intersects(asteroide.getCollisionShape())) {
                     proyectil.setActivo(false);
                     Asteroide[] fragmentos = asteroide.recibirImpacto();
                     Collections.addAll(nuevos, fragmentos);
@@ -41,10 +43,11 @@ public class CollisionManager {
         if (nave == null || !nave.estaActivo()) {
             return;
         }
+        CollisionShape shapeNave = nave.getCollisionShape();
         List<Asteroide> nuevos = new ArrayList<>();
         for (Asteroide asteroide : asteroides) {
             if (!asteroide.estaActivo()) continue;
-            if (nave.colisionaCon(asteroide)) {
+            if (shapeNave != null && shapeNave.intersects(asteroide.getCollisionShape())) {
                 nave.perderVida();
                 Asteroide[] fragmentos = asteroide.recibirImpacto();
                 Collections.addAll(nuevos, fragmentos);
@@ -65,4 +68,3 @@ public class CollisionManager {
         };
     }
 }
-

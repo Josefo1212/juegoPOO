@@ -1,6 +1,7 @@
 package View;
 
 import Controller.GameController;
+import Controller.LeaderboardManager;
 import Controller.ResourceLoader;
 
 import javax.swing.BorderFactory;
@@ -94,6 +95,7 @@ public class GamePanel extends JPanel {
             int msgWidth = g2.getFontMetrics().stringWidth(msg);
             g2.setColor(Color.RED);
             g2.drawString(msg, (getWidth() - msgWidth) / 2, getHeight() / 2 - 20);
+            mostrarLeaderboard(g2);
             posicionarBoton();
         } else {
             restartButton.setVisible(false);
@@ -110,5 +112,20 @@ public class GamePanel extends JPanel {
         int y = getHeight() / 2 + 10;
         restartButton.setBounds(x, y, botonAncho, botonAlto);
         restartButton.setVisible(true);
+    }
+
+    private void mostrarLeaderboard(Graphics2D g2) {
+        g2.setFont(new Font("Consolas", Font.PLAIN, 14));
+        int startY = getHeight() / 2 + 60;
+        g2.setColor(Color.WHITE);
+        g2.drawString("Top jugadores:", 20, startY);
+        int offsetY = 20;
+        int rank = 1;
+        for (LeaderboardManager.ScoreEntry entry : controller.getLeaderboard()) {
+            String line = rank + ". " + entry.nombre() + " - " + entry.puntaje();
+            g2.drawString(line, 20, startY + rank * offsetY);
+            rank++;
+            if (rank > 5) break;
+        }
     }
 }

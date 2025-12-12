@@ -1,5 +1,6 @@
 package Model;
 
+import Model.CollisionShape;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 
@@ -51,11 +52,20 @@ public abstract class EntidadJuego {
         return Math.min(ancho, alto) / 2.0;
     }
 
+    public CollisionShape getCollisionShape() {
+        return null;
+    }
+
     /**
      * Colisión circular simple entre dos entidades.
      */
     public boolean colisionaCon(EntidadJuego otra) {
         if (otra == null) return false;
+        CollisionShape a = this.getCollisionShape();
+        CollisionShape b = otra.getCollisionShape();
+        if (a != null && b != null) {
+            return a.intersects(b);
+        }
         double dx = this.x - otra.x;
         double dy = this.y - otra.y;
         double dist2 = dx * dx + dy * dy;

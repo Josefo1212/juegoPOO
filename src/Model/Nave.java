@@ -7,6 +7,9 @@ import java.awt.image.BufferedImage;
 import java.awt.Rectangle;
 
 import Controller.ResourceLoader;
+import Model.CollisionPolygon;
+import Model.CollisionShape;
+import Model.Vector2;
 
 public class Nave extends EntidadJuego {
     private double rotacion; // ángulo en grados
@@ -104,5 +107,23 @@ public class Nave extends EntidadJuego {
         this.vidas = 3;
         this.energia = 100.0;
         this.activo = true;
+    }
+
+    @Override
+    public CollisionShape getCollisionShape() {
+        double rad = Math.toRadians(rotacion - 90);
+        double halfW = ancho / 2.0;
+        double halfH = alto / 2.0;
+        Vector2[] base = new Vector2[] {
+            new Vector2(0, -halfH),
+            new Vector2(halfW * 0.8, halfH),
+            new Vector2(-halfW * 0.8, halfH)
+        };
+        Vector2[] rotated = new Vector2[base.length];
+        for (int i = 0; i < base.length; i++) {
+            Vector2 v = base[i].rotate(rad).add(new Vector2(x, y));
+            rotated[i] = v;
+        }
+        return new CollisionPolygon(rotated);
     }
 }

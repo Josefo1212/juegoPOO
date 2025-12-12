@@ -1,5 +1,6 @@
 import Controller.GameController;
 import Controller.InputController;
+import Controller.LeaderboardManager;
 import Model.Nave;
 import View.GameWindow;
 
@@ -13,7 +14,10 @@ public class App {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             Nave nave = new Nave(MUNDO_ANCHO / 2.0, MUNDO_ALTO / 2.0, 0, 0, 40, 20, true);
-            GameController controller = new GameController(nave, MUNDO_ANCHO, MUNDO_ALTO);
+            LeaderboardManager leaderboardManager = new LeaderboardManager(
+                java.nio.file.Paths.get(System.getProperty("user.home"), ".galacticstorm", "leaderboard.csv")
+            );
+            GameController controller = new GameController(nave, MUNDO_ANCHO, MUNDO_ALTO, leaderboardManager);
             InputController inputController = new InputController(controller);
             controller.setInputController(inputController);
             GameWindow window = new GameWindow(controller, inputController, MUNDO_ANCHO, MUNDO_ALTO);
